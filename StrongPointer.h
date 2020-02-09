@@ -24,6 +24,16 @@
 #include <stdlib.h>
 
 // ---------------------------------------------------------------------------
+namespace android {
+namespace RSC {
+
+class TextOutput;
+TextOutput& printStrongPointer(TextOutput& to, const void* val);
+
+template<typename T> class wp;
+
+// ---------------------------------------------------------------------------
+
 #define COMPARE(_op_)                                           \
 inline bool operator _op_ (const sp<T>& o) const {              \
     return m_ptr _op_ o.m_ptr;                                  \
@@ -39,6 +49,13 @@ template<typename U>                                            \
 inline bool operator _op_ (const U* o) const {                  \
     return m_ptr _op_ o;                                        \
 }                                                               \
+inline bool operator _op_ (const wp<T>& o) const {              \
+    return m_ptr _op_ o.m_ptr;                                  \
+}                                                               \
+template<typename U>                                            \
+inline bool operator _op_ (const wp<U>& o) const {              \
+    return m_ptr _op_ o.m_ptr;                                  \
+}
 
 // ---------------------------------------------------------------------------
 
@@ -87,11 +104,15 @@ public:
 
 private:
     template<typename Y> friend class sp;
+    template<typename Y> friend class wp;
     void set_pointer(T* ptr);
     T* m_ptr;
 };
 
 #undef COMPARE
+
+template <typename T>
+TextOutput& operator<<(TextOutput& to, const sp<T>& val);
 
 // ---------------------------------------------------------------------------
 // No user serviceable parts below here.
@@ -187,7 +208,14 @@ void sp<T>::set_pointer(T* ptr) {
     m_ptr = ptr;
 }
 
+template <typename T>
+inline TextOutput& operator<<(TextOutput& to, const sp<T>& val)
+{
+    return printStrongPointer(to, val.get());
+}
 
+}; // namespace RSC
+}; // namespace android
 
 // ---------------------------------------------------------------------------
 
